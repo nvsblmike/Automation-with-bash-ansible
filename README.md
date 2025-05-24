@@ -56,7 +56,7 @@ ami-builder/
 ### 1. Terraform Configuration
 
 3. Populate main.tf with this:
-‘’’
+```
 # main.tf
 terraform {
   required_version = ">= 1.5.0"
@@ -209,101 +209,66 @@ data "aws_ami" "ubuntu" {
     values = ["hvm"]
   }
 }
-
-‘’’
-1. Providers & Requirements
+```
+# Explanation of main.tf
+✅ 1. Providers & Requirements
 Requires Terraform ≥ 1.5.0.
 
-
 Uses the AWS provider (~> 5.0).
-
-
 
 ✅ 2. AWS Provider Configuration
 Region is dynamic (via var.aws_region).
 
-
 Tags all resources with Environment, Terraform, Project, and CostCenter.
-
-
 
 ✅ 3. VPC Module
 Creates a custom VPC with:
 One public and one private subnet (in a single AZ).
 
-
 NAT Gateway (single).
-
 
 DNS support & hostnames.
 
-
 Subnet tagging for public/private network tiers.
-
-
 
 ✅ 4. SSH Key Management
 Generates an RSA 4096-bit key pair.
 
-
 Uploads the public key to AWS EC2 (as a Key Pair).
 
-
 Saves the private key locally to .ssh/secret-private-key.pem.
-
-
 
 ✅ 5. Security Group
 Creates a Security Group for the EC2 instance:
 Allows SSH (port 22) from anywhere.
 
-
 Allows all outbound traffic.
 
-
 Tagged with Role = cloudwatch.
-
-
 
 ✅ 6. EC2 Instance
 Launches a t2.micro instance:
 Uses latest Ubuntu 22.04 AMI (Jammy Jellyfish).
 
-
 Placed in the public subnet.
-
 
 Uses the created SSH key pair and security group.
 
-
 CloudWatch monitoring enabled.
-
 
 Executes a startup script (ansible-controller-setup.sh.tpl) using user_data.
 
-
 30 GB gp3 volume.
 
-
 Tagged as Name = baseAMI.
-
 
 
 ✅ 7. Data Source
 Fetches the most recent official Ubuntu 22.04 AMI from Canonical.
 
 
-
-
-
-
-
-
-
 4. Populate variables.tf with this:
-
-
-‘’’
+```
 variable "aws_region" {
   description = "AWS region"
   default     = "us-east-1"
@@ -336,52 +301,35 @@ variable "docker_version" {
 
 
 
-
-
-‘’’
+```
+# Explanation of the variables.tf file
 aws_region
 Description: The AWS region where all resources will be deployed.
 
 
 Default: "us-east-1" (N. Virginia).
 
-
-
 ✅ ssh_key_name
 Description: Name of the SSH key to be used for EC2 instances.
 
-
 Type: string
 
-
 Default: "terraform-proj-ssh-key"
-
-
 
 ✅ environment
 Description: Used to tag or configure resources based on environment (e.g., dev, prod).
 
-
 Default: "prod"
-
-
 
 ✅ ubuntu_version
 Description: The codename for the Ubuntu version to use.
 
-
 Default: "jammy" → Ubuntu 22.04 LTS
-
-
 
 ✅ docker_version
 Description: Specific Docker version to be installed on EC2 instances.
 
-
 Default: "5:24.0.7-1~ubuntu.22.04~jammy" → This ensures version 24.0.7 compatible with Ubuntu 22.04
-
-
-
 
 
 5. Add a .gitignore file to avoid pushing unwanted files. Mine has  the following content:
