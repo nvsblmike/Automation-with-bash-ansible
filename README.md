@@ -1,4 +1,4 @@
-# Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
+![image](https://github.com/user-attachments/assets/a113321e-be2f-49f5-ad6a-2a6175e81201)# Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
 
 ![AWS Infrastructure Diagram]()
 
@@ -24,7 +24,7 @@ There are some prerequisites that we need to ensure are set before we proceed:
 - Github account and repo. You can fork this project.
 - An IDE, like visual studio code.
 
-#Stage 1:
+# Stage 1:
 There are some things we need to know before we create our AMI.
 What is a global AMI: A global AMI is an Amazon Machine Image that is available across multiple AWS region, allowing consistent EC2 instance launches anywhere.
 
@@ -37,6 +37,7 @@ Steps:
 
 In this case, I created a folder in an existing directory. I created the folder javaapp.
 Enter into this folder.
+
 In this folder, you can enter code . to open that directory in Visual Studio Code.
 2. Create two files named main.tf and variables.tf like below:
 ![image](https://github.com/user-attachments/assets/1bfe5bc6-ecc8-414c-bf4c-bf19b771ba31)
@@ -46,7 +47,7 @@ In this folder, you can enter code . to open that directory in Visual Studio Cod
 
 ### File Structure
 
-ami-builder/
+javaapp/
 ├── main.tf
 ├── variables.tf
 ├── .gitignore
@@ -333,7 +334,7 @@ Default: "5:24.0.7-1~ubuntu.22.04~jammy" → This ensures version 24.0.7 compati
 
 
 5. Add a .gitignore file to avoid pushing unwanted files. Mine has  the following content:
-‘’’
+```
 # These are some examples of commonly ignored file patterns.
 # You should customize this list as applicable to your project.
 # Learn more about .gitignore:
@@ -434,23 +435,22 @@ Thumbs.db
 
 
 vpn-cert/
-
-
-
-
-
-‘’’
+```
 6. Next you should run the following command to initialize the terraform project:
-– terraform init
 
+```
+– terraform init
+```
+![image](https://github.com/user-attachments/assets/ad309bf0-86e7-42a9-a988-f7fa6fe0f13a)
 You should see something like the following in your project when done:
+![image](https://github.com/user-attachments/assets/0c9d5b1f-fee8-46c2-b2e7-7b048d8aad0b)
+
 
 It might take sometime but wait till it’s done.
 
 The next step is to deploy the infrastructure. But before that we want to create a script that would install ansible inside our EC2 instance. It is installed using terraform. In the code you copied into main.tf, you’d see the place where this happens:
-
-‘’’
-esource "aws_instance" "baseami-ec2" {
+```
+resource "aws_instance" "baseami-ec2" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   subnet_id              = module.vpc.public_subnets[0]
@@ -479,10 +479,10 @@ esource "aws_instance" "baseami-ec2" {
     Name = "baseAMI"
   }
 }
+```
 
-‘’’
 The content of ansible-controller-setup.sh.tpl is:
-‘’’
+```
 #!/bin/bash
 # System setup
 sudo apt-get update -y
@@ -510,70 +510,66 @@ sudo chown -R ${ansible_user}:${ansible_user} ${SSH_DIR}
 
 # Debug output
 echo "Key deployed at: $(date)" | sudo tee ${SSH_DIR}/deployment.log
+```
 
-
-
-‘’’
 Using:
+```
 – terraform plan
+```
 Let’s check what we want to provision:
 
 It’s up to 20 resources we’d be adding as seen below:
+![image](https://github.com/user-attachments/assets/7a46a7cb-0423-4079-bc48-7443a80047cd)
 
 
-
-
-Before deployment, make sure you configure aws account using an IAM user. You can set up a user with AdministratorAccess as policy in the console. Get the Access key and the secret access key.
+7. Before deployment, make sure you configure aws account using an IAM user. You can set up a user with AdministratorAccess as policy in the console. Get the Access key and the secret access key.
 Run:
+```
 – aws configure
+```
 Add the access key and the secret access key including your region.
 
-After that, run:
+8. After that, run:
+```
 – terraform apply
+```
 Type out yes
-
-
-
-
-
-
-
-
-
-
-
+![image](https://github.com/user-attachments/assets/98521f03-dc9e-4273-b0ff-d331ab5295ae)
 
 
 When done you should see this:
+![image](https://github.com/user-attachments/assets/1efb4ae9-9ad8-4d26-b7b1-2c51f0d0f64c)
 
 
-The next thing to do is check the EC2 instance in your account using the command:
+9. The next thing to do is check the EC2 instance in your account using the command:
+```
 – aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId, PublicIpAddress, PrivateIpAddress, Tags[?Key=='Name'].Value | [0]]" --output table
+```
 
 You can only run this when you’ve configured aws CLI locally.
+![image](https://github.com/user-attachments/assets/3de50291-a1ba-4176-afdd-ca8018ec0a26)
 
 
-
-Up next is to install the following on our EC2 instance:
+10. Up next is to install the following on our EC2 instance:
 - install AWS CLI
-Install Cloudwatch agent
-Install AWS Systems Manager (SSM) Agent
-Install nginx and configure cloudwatch metrics
+- Install Cloudwatch agent
+- Install AWS Systems Manager (SSM) Agent
+- Install nginx and configure cloudwatch metrics
 
-We;re going to be using Ansible to install all of these.
+We're going to use Ansible to install all of these.
 
 Firstly create a folder called ansible
 Create a file called hosts.ini inside this ansible folder.
 Add the following content into the hosts.ini file:
-‘’’
+```
 [Cloudwatch]
 localhost ansible_connection=local
-
-‘’’
+```
+![image](https://github.com/user-attachments/assets/2d275a21-630c-4c40-8c1f-8e70033ef4be)
 
 Why the hosts.ini file is specified so is because we’d be installing the softwares in the EC2 where we installed ansible.
 
-Up next is to get the ansible playbook for the installation of the softwares mentioned above.
+11. Up next is to get the ansible playbook for the installation of the softwares mentioned above.
 
 Create three files:
 Configure-aws-cli.yml
@@ -583,32 +579,33 @@ Configure-nginx-and-metrics.yml
 All in the ansible folder
 
 
-
-Now we need to install them in the EC2 instance we spun up.
+12. Now we need to install them in the EC2 instance we spun up.
 – using the command to get our EC2 instance:
+```
 aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId, PublicIpAddress, PrivateIpAddress, Tags[?Key=='Name'].Value | [0]]" --output table
+```
 
 We can get our IP address and ssh into it.
 
 In our terraform main.tf file, we created a key pair and created a .ssh folder to add the private key there while the public key was created inside the EC2 instance.
-
+![image](https://github.com/user-attachments/assets/e885b14a-d804-4c37-95fb-8b58aa8bc8de)
 
 — ssh .ssh/secret-private-key.pem ubuntu@your-ec2-instance-ip-address
+![image](https://github.com/user-attachments/assets/d841f3ed-d2cb-4777-87f4-4e81e4aca5fe)
 
 
-Create a folder called ansible
+13. Create a folder called ansible
 
 Create a file called hosts.ini inside this ansible folder.
 Add the following content into the hosts.ini file:
-‘’’
+```
 [Cloudwatch]
 localhost ansible_connection=local
 
-‘’’
-
-Create the Configure-aws-cli.yml file:
+```
+14. Create the Configure-aws-cli.yml file:
 – nano configure-aws-cli.yml 
-‘’’
+```
 ---
 - name: Install and configure AWS CLI for ubuntu user
   hosts: all
@@ -683,44 +680,44 @@ Create the Configure-aws-cli.yml file:
 # aws_region: "us-east-1"
 #vars_files:
 #  - aws_credentials.yml
+```
 
-
-
-‘’’
-
-We’d be using ansible-vault for security reasons. We need to reduce how much we expose our important credentials.
+15. We’d be using ansible-vault for security reasons. We need to reduce how much we expose our important credentials.
 After creating the file:
 Run:
+```
 – ansible-vault create aws_credentials.yml
+```
 
 Add your password
 And confirm it by repeating it.
 It would automatically open a vi file. So to add, click i - for insert
-‘’’
-# aws_access_key_id: "YOUR_AWS_ACCESS_KEY_ID"
-# aws_secret_access_key: "YOUR_AWS_SECRET_ACCESS_KEY"
-# aws_region: "us-east-1"
-‘’’
+```
+aws_access_key_id: "YOUR_AWS_ACCESS_KEY_ID"
+aws_secret_access_key: "YOUR_AWS_SECRET_ACCESS_KEY"
+aws_region: "us-east-1"
+```
 Add the correct keys in your case.
 
 So to save, press:
 :wq
 
-22.
+![image](https://github.com/user-attachments/assets/b22cf979-2e8a-4bcd-af36-e75bd3bca265)
 
 Run:
+```
 – ansible-playbook -i hosts.ini configure-aws-cli.yml –ask-vault-pass
-
+```
 This would bring out a prompt where you would have to add your password created earlier. Do this and press enter. It should run the playbook.
 
+![image](https://github.com/user-attachments/assets/d8828c63-839b-4c40-b351-8227415b2d2b)
 
 
-Create the file configure-monitoring-agents.yml to install SSM and cloudwatch agent.
+16. Create the file configure-monitoring-agents.yml to install SSM and cloudwatch agent.
 
 Configure-monitoring-agents.yml
 
-
-‘’’
+```
 - name: Install and configure CloudWatch Agent, and SSM Agent on Ubuntu EC2
   hosts: Cloudwatch
   become: yes
@@ -759,21 +756,21 @@ Configure-monitoring-agents.yml
         state: started
         enabled: yes
 
+```
 
-
-‘’’
 Run the ansible playbook:
+```
 – ansible-playbook -i hosts.ini configure-monitoring-agents.yml
+```
 
 You should see something like this
-
-
+![image](https://github.com/user-attachments/assets/c21e6727-3a8f-4353-88c8-b972ffa21b88)
 
 
 Create the final file configure-nginx-and-metrics.yml to install Nginx and set up monitoring on cloudwatch
 
 Configure-nginx-and-metrics.yml
-‘’’
+```ansible
 - name: Install Nginx and setup CloudWatch custom metrics
   hosts: Cloudwatch
   become: yes
@@ -841,50 +838,57 @@ Configure-nginx-and-metrics.yml
 
     - name: Run resource usage script in background
       shell: nohup sudo -u ubuntu /tmp/system-metrics.sh >/dev/null 2>&1 &
-
-
-
-‘’’
+```
 
 Run the playbook:
-– ansible-playbook -i hosts.ini configure-nginx-and-metrics.yml
+```bash
+– ansible-playbook-i hosts.ini configure-nginx-and-metrics.yml
+```
 
 You should see this:
 
-
-
+![image](https://github.com/user-attachments/assets/a5d6b7da-64b6-4db6-90ee-c3a9b0dacb65)
 
 If you go to your cloudwatch dashboard and navigate to All metrics, you’d see this:
+![image](https://github.com/user-attachments/assets/7ee01467-35dd-40a9-90e6-d8b2f322a17d)
 
+![image](https://github.com/user-attachments/assets/4a1706f5-fc4c-424a-9db7-d217349194b0)
 
 Now you can check the metrics you set up which was to monitor memory, disk space and CPU of the server (EC2).
 
 When you click on custom you’d see:
 
+![image](https://github.com/user-attachments/assets/7db2b3d1-7a5c-49c1-b33b-91e6d8192071)
 
 Then:
+![image](https://github.com/user-attachments/assets/90c24524-2c70-4759-a8b9-905ebc461b30)
 
 Check the three metrics,
 Finally: 
 Click on Graphed metrics (3)
 
+![image](https://github.com/user-attachments/assets/5e9b9322-4cbd-48fd-b462-48aeac630a0e)
 
+![image](https://github.com/user-attachments/assets/56b67111-955a-46b3-b4cf-6f37111120d3)
 
 When it starts getting readings, it’d begin to show on the graph.
 
 Up next is to create our AMI.
 Run the following command to create an AMI:
+```
 — aws ec2 create-image --instance-id $(curl -s http://169.254.169.254/latest/meta-data/instance-id) --name "MyCustomAMI" --no-reboot
-
-
+```
+![image](https://github.com/user-attachments/assets/ef5b9576-7e2a-45e0-ac5c-d7a5a0d8dbe9)
 
 Then run:
+```
 – aws ec2 describe-images --owners self
-To confirm .
+```
+To confirm.
 
 You can also check your console:
 Search for AMIs
-
+![image](https://github.com/user-attachments/assets/971c093b-45d2-4229-b73f-763f93d21c2f)
 
 
 Now you have your AMI ready to be launched at anytime without the need to start reconfiguring from scratch anymore.
