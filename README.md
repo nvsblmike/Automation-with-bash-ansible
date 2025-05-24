@@ -1,8 +1,12 @@
 # Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
 
-![AWS Infrastructure Diagram](https://via.placeholder.com/800x400.png?text=Architecture+Diagram)
+![AWS Infrastructure Diagram]()
 
 A comprehensive guide to creating custom Amazon Machine Images (AMIs) with infrastructure-as-code and configuration management.
+
+Hi, this is a tutorial on how to create an Amazon Machine Image using Ansible. We’d also be setting up cloudWatch metrics for monitoring. 
+It is an excerpt from the tutorial made by NotHarshaa https://github.com/NotHarshhaa/DevOps-Projects/tree/master/DevOps-Project-01
+He has done a fantastic job of delivering top notch project ideas and breaking them down.
 
 ## 📋 Prerequisites
 
@@ -13,6 +17,30 @@ A comprehensive guide to creating custom Amazon Machine Images (AMIs) with infra
   - Terraform (Infrastructure as Code)
   - Ansible (Configuration Management)
   - AWS EC2 & CloudWatch
+ 
+What I just do here is to show my own step by step implementation of creating an AMI.
+There are some prerequisites that we need to ensure are set before we proceed:
+You must have an AWS free tier account.
+Github account and repo. You can fork this project.
+IDE - like visual studio code
+
+Stage 1:
+There are some things we need to know before we create our AMI.
+What is a global AMI: A global AMI is an Amazon Machine Image that is available across multiple AWS region, allowing consistent EC2 instance launches anywhere.
+
+The first thing is for you to get an EC2 instance. You could go through the route of provisioning it via the console or using IaC to provision the application.
+For this project, I made use of Terraform.
+
+Steps:
+1. Create a new folder in your local directory 
+![image](https://github.com/user-attachments/assets/12dfb097-bf03-4d67-8811-93cd910bf6d7)
+
+In this case, I created a folder in an existing directory. I created the folder javaapp.
+Enter into this folder.
+In this folder, you can enter code . to open that directory in Visual Studio Code.
+2. Create two files named main.tf and variables.tf like below:
+![image](https://github.com/user-attachments/assets/1bfe5bc6-ecc8-414c-bf4c-bf19b771ba31)
+
 
 ## 🛠️ Infrastructure Setup with Terraform
 
