@@ -1,6 +1,4 @@
-![image](https://github.com/user-attachments/assets/a113321e-be2f-49f5-ad6a-2a6175e81201)# Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
-
-![AWS Infrastructure Diagram]()
+# Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
 
 A comprehensive guide to creating custom Amazon Machine Images (AMIs) with infrastructure-as-code and configuration management.
 
@@ -844,6 +842,7 @@ Run the playbook:
 ```bash
 – ansible-playbook-i hosts.ini configure-nginx-and-metrics.yml
 ```
+![image](https://github.com/user-attachments/assets/a113321e-be2f-49f5-ad6a-2a6175e81201)
 
 You should see this:
 
