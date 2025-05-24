@@ -69,6 +69,7 @@ node_modules
 *.pem
 *.key
 
+prerequisites.sh
 # Ignore VS Code settings
 .vscode/
 
