@@ -1,0 +1,66 @@
+---
+- name: Install and configure AWS CLI for ubuntu user
+  hosts: all
+  become: yes
+  vars_files:
+  - aws_credentials.yml
+
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: [unzip, curl]
+        state: present
+        update_cache: yes
+
+    - name: Download AWS CLI v2
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+
+    - name: Unzip AWS CLI
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+
+    - name: Install AWS CLI
+      command: /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Create .aws directory for ubuntu user
+      file:
+        path: /home/ubuntu/.aws
+        state: directory
+        mode: '0700'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Write AWS credentials for ubuntu user
+      copy:
+        dest: /home/ubuntu/.aws/credentials
+        content: |
+          [default]
+          aws_access_key_id={{ aws_access_key_id }}
+          aws_secret_access_key={{ aws_secret_access_key }}
+        mode: '0600'
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Write AWS config for ubuntu user
+      copy:
+        dest: /home/ubuntu/.aws/config
+        content: |
+          [default]
+          region={{ aws_region }}
+          output=json
+        mode: '0600'
+        owner: ubuntu
+        group: ubuntu
+
+#ansible-vault create aws_credentials.yml
+# aws_access_key_id: "YOUR_AWS_ACCESS_KEY_ID"
+# aws_secret_access_key: "YOUR_AWS_SECRET_ACCESS_KEY"
+# aws_region: "us-east-1"
+#vars_files:
+#  - aws_credentials.yml

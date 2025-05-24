@@ -1,0 +1,60 @@
+- name: Install Nginx and setup CloudWatch custom metrics
+  hosts: Cloudwatch
+  become: yes
+  
+  tasks:
+    # Install Nginx based on OS type
+    - name: Install Nginx (Ubuntu/Debian)
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Nginx (Amazon Linux/CentOS/RHEL)
+      yum:
+        name: nginx
+        state: present
+      when: ansible_os_family in ["RedHat", "Amazon"]
+
+    - name: Start and enable Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    # Create custom resource monitoring script
+    - name: Create custom resource usage script
+      copy:
+        dest: /tmp/system-metrics.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          while true; do
+            # Memory Usage Percentage
+            memory_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+            
+            # CPU Usage Percentage
+            cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}')
+            
+            # Disk Usage Percentage
+            disk_usage=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+
+            # Instance ID retrieval
+            instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+
+            # Send metrics to CloudWatch
+            aws cloudwatch put-metric-data --metric-name MemoryUUsage --namespace Custom --value $memory_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
+            aws cloudwatch put-metric-data --metric-name CPUUUsage --namespace Custom --value $cpu_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
+            aws cloudwatch put-metric-data --metric-name DiskUUsage --namespace Custom --value $disk_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
+
+            # Fetch CloudWatch metrics (not necessary but included)
+            aws cloudwatch get-metric-statistics --metric-name MemoryUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            aws cloudwatch get-metric-statistics --metric-name CPUUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            aws cloudwatch get-metric-statistics --metric-name DiskUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            
+            sleep 60
+          done &
+
+    - name: Run resource usage script in background
+      shell: nohup sudo -u ubuntu /tmp/system-metrics.sh >/dev/null 2>&1 &

@@ -1,0 +1,19 @@
+aws ec2 describe-images --owners self
+
+
+aws ec2 create-image --instance-id i-xxxxxxxxxxxxxxxxx --name "MyCustomAMI" --no-reboot
+
+
+curl http://169.254.169.254/latest/meta-data/instance-id
+
+
+memory_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+aws cloudwatch put-metric-data \
+  --metric-name MemoryUsage \
+  --namespace Custom \
+  --value $memory_usage \
+  --dimensions InstanceId=$instance_id
+
+
+aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId, PublicIpAddress, PrivateIpAddress, Tags[?Key=='Name'].Value | [0]]" --output table

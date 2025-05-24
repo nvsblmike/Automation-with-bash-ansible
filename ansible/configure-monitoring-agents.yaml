@@ -1,0 +1,32 @@
+- name: Install and configure CloudWatch Agent, and SSM Agent on Ubuntu EC2
+  hosts: Cloudwatch
+  become: yes
+
+  tasks:
+    # -------- CloudWatch Agent --------
+    - name: Download CloudWatch Agent .deb package
+      get_url:
+        url: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
+        dest: /tmp/amazon-cloudwatch-agent.deb
+
+    - name: Install CloudWatch Agent
+      apt:
+        deb: /tmp/amazon-cloudwatch-agent.deb
+
+    - name: Start CloudWatch Agent
+      command: >
+        /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+        -a start
+
+    # -------- SSM Agent --------
+    - name: Install SSM Agent using snap
+      snap:
+        name: amazon-ssm-agent
+        classic: yes
+        state: present
+
+    - name: Start SSM Agent service
+      systemd:
+        name: snap.amazon-ssm-agent.amazon-ssm-agent
+        state: started
+        enabled: yes
