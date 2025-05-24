@@ -44,14 +44,14 @@
             instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 
             # Send metrics to CloudWatch
-            aws cloudwatch put-metric-data --metric-name MemoryUUsage --namespace Custom --value $memory_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
-            aws cloudwatch put-metric-data --metric-name CPUUUsage --namespace Custom --value $cpu_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
-            aws cloudwatch put-metric-data --metric-name DiskUUsage --namespace Custom --value $disk_usage --dimensions InstanceId=i-0f15a016b0c67e2e4 --unit Percent
+            aws cloudwatch put-metric-data --metric-name Memory1Usage --namespace Custom --value $memory_usage --dimensions InstanceId=$instance_id --unit Percent
+            aws cloudwatch put-metric-data --metric-name CPU1Usage --namespace Custom --value $cpu_usage --dimensions InstanceId=$instance_id --unit Percent
+            aws cloudwatch put-metric-data --metric-name Disk1Usage --namespace Custom --value $disk_usage --dimensions InstanceId=$instance_id --unit Percent
 
             # Fetch CloudWatch metrics (not necessary but included)
-            aws cloudwatch get-metric-statistics --metric-name MemoryUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
-            aws cloudwatch get-metric-statistics --metric-name CPUUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
-            aws cloudwatch get-metric-statistics --metric-name DiskUUsage --namespace Custom --dimensions Name=InstanceId,Value=i-0f15a016b0c67e2e4 --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            aws cloudwatch get-metric-statistics --metric-name Memory1Usage --namespace Custom --dimensions Name=InstanceId,Value=$instance_id --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            aws cloudwatch get-metric-statistics --metric-name CPU1Usage --namespace Custom --dimensions Name=InstanceId,Value=$instance_id --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
+            aws cloudwatch get-metric-statistics --metric-name Disk1Usage --namespace Custom --dimensions Name=InstanceId,Value=$instance_id --statistics Average --start-time $(date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ') --end-time $(date -u +'%Y-%m-%dT%H:%M:%SZ') --period 60
             
             sleep 60
           done &

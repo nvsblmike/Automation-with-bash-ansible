@@ -64,6 +64,57 @@ resource "local_file" "private_key" {
   file_permission = "0600"
 }
 
+resource "aws_security_group" "baseami_apache_sg" {
+  name        = "baseami-apache-sg"
+  description = "Base AMI EC2 Apache security group"
+  vpc_id = module.vpc.vpc_id
+  
+  ingress {
+    description = "SSH from trusted IPs"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Role = "cloudwatch-apache"
+  }
+}
+
+resource "aws_instance" "baseami-apache-ec2" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.baseami_apache_sg.id]
+  key_name               = aws_key_pair.generated_key.key_name
+
+  monitoring             = true
+  associate_public_ip_address = true
+
+  user_data = templatefile("${path.module}/ansible-controller-setup.sh.tpl", {
+    private_key_content = tls_private_key.ssh_key.private_key_pem
+    ansible_user        = "ubuntu"
+    SSH_DIR             = "/home/ubuntu/.ssh"
+  })
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "baseAMIApache"
+  }
+}
+
 resource "aws_security_group" "baseami_sg" {
   name        = "baseami-sg"
   description = "Base AMI EC2 security group"
