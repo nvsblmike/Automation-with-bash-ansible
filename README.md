@@ -1,4 +1,4 @@
-# Automated AMI Creation with Terraform & Ansible + CloudWatch Monitoring
+# AMI Creation with Terraform & Ansible + CloudWatch Monitoring
 
 A comprehensive guide to creating custom Amazon Machine Images (AMIs) with infrastructure-as-code and configuration management.
 
